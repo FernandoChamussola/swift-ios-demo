@@ -1,516 +1,607 @@
 
 import SwiftUI
 
-private enum AppStyle {
-    static let blue = Color(red: 0.20, green: 0.38, blue: 0.95)
-    static let background = Color(red: 0.96, green: 0.97, blue: 0.99)
-    static let muted = Color(red: 0.43, green: 0.47, blue: 0.55)
+private enum CQ {
+    static let bg = Color(red: 0.035, green: 0.055, blue: 0.09)
+    static let panel = Color(red: 0.075, green: 0.10, blue: 0.15)
+    static let green = Color(red: 0.25, green: 0.95, blue: 0.60)
+    static let blue = Color(red: 0.30, green: 0.65, blue: 1.0)
+    static let muted = Color(red: 0.58, green: 0.65, blue: 0.75)
 }
 
-private enum Priority: String, CaseIterable, Codable {
-    case low = "Baixa"
-    case medium = "Média"
-    case high = "Alta"
-
-    var color: Color {
-        switch self {
-        case .low: return .green
-        case .medium: return .orange
-        case .high: return .red
-        }
-    }
-
-    var symbol: String {
-        switch self {
-        case .low: return "arrow.down"
-        case .medium: return "minus"
-        case .high: return "arrow.up"
-        }
-    }
+private struct Lesson: Identifiable {
+    let id: Int
+    let title: String
+    let subtitle: String
+    let icon: String
+    let concept: String
+    let objective: String
+    let challenge: String
+    let options: [String]
+    let answer: Int
+    let explanation: String
+    let labTitle: String
+    let labDescription: String
+    let labOptions: [String]
+    let labAnswer: Int
+    let labExplanation: String
 }
 
-private struct TaskItem: Identifiable, Codable {
-    var id: UUID = UUID()
-    var title: String
-    var priority: Priority = .medium
-    var isCompleted: Bool = false
-}
+private let lessons: [Lesson] = [
+    Lesson(
+        id: 1,
+        title: "Fundamentos",
+        subtitle: "Protege as tuas contas",
+        icon: "lock.shield.fill",
+        concept: "Uma palavra-passe forte deve ser difícil de adivinhar e exclusiva para cada conta. Um gestor de palavras-passe e a autenticação multifator acrescentam proteção.",
+        objective: "Identificar práticas que reduzem o risco de acesso não autorizado.",
+        challenge: "Qual destas práticas oferece melhor proteção?",
+        options: [
+            "Usar a mesma palavra-passe em todos os sites",
+            "Usar palavras-passe únicas e autenticação multifator",
+            "Partilhar a palavra-passe com um amigo de confiança"
+        ],
+        answer: 1,
+        explanation: "Correto. Palavras-passe únicas limitam o impacto de uma fuga de dados. A autenticação multifator acrescenta uma camada de proteção.",
+        labTitle: "Laboratório: auditor de contas",
+        labDescription: "Uma conta fictícia usa a palavra-passe 'Moz2026' em cinco serviços e não tem segundo fator. Qual é a primeira melhoria recomendada?",
+        labOptions: [
+            "Manter a palavra-passe porque tem números",
+            "Reutilizá-la apenas em sites conhecidos",
+            "Criar palavras-passe únicas e ativar MFA"
+        ],
+        labAnswer: 2,
+        labExplanation: "Boa decisão. O comprimento, a exclusividade e a proteção adicional são mais importantes do que simplesmente acrescentar um número."
+    ),
+    Lesson(
+        id: 2,
+        title: "Detetar phishing",
+        subtitle: "Investiga mensagens suspeitas",
+        icon: "envelope.badge.shield.half.filled",
+        concept: "Phishing é uma tentativa de enganar alguém para revelar dados ou executar uma ação. Urgência, remetentes inesperados e links com domínios estranhos são sinais de alerta.",
+        objective: "Reconhecer indícios de fraude antes de interagir com uma mensagem.",
+        challenge: "Recebes uma mensagem: 'A tua conta será bloqueada em 10 minutos! Abre já este link desconhecido.' O que fazes?",
+        options: [
+            "Abrir rapidamente para evitar o bloqueio",
+            "Responder com a palavra-passe para confirmar a conta",
+            "Não abrir o link e verificar pelo canal oficial"
+        ],
+        answer: 2,
+        explanation: "Correto. A pressão para agir depressa é uma técnica comum. Verifica a situação através da aplicação ou do site oficial, aberto por ti.",
+        labTitle: "Laboratório: analisar um e-mail",
+        labDescription: "E-mail fictício: 'Prémio confirmado! Envia o teu PIN M-Pesa para receberes o dinheiro.' Qual é o sinal mais importante?",
+        labOptions: [
+            "O pedido de um PIN confidencial",
+            "A mensagem ter poucas palavras",
+            "O texto mencionar um prémio"
+        ],
+        labAnswer: 0,
+        labExplanation: "Nunca partilhes PINs ou códigos de autenticação para receber um prémio. A mensagem deve ser tratada como suspeita."
+    ),
+    Lesson(
+        id: 3,
+        title: "Segurança Web",
+        subtitle: "Compreende entradas inseguras",
+        icon: "chevron.left.forwardslash.chevron.right",
+        concept: "Uma aplicação não deve confiar automaticamente nos dados recebidos. Consultas SQL parametrizadas separam os dados do código e ajudam a prevenir SQL injection.",
+        objective: "Distinguir a construção insegura de consultas de uma abordagem parametrizada.",
+        challenge: "Qual é a melhor forma de executar uma consulta SQL com um nome introduzido pelo utilizador?",
+        options: [
+            "Concatenar diretamente o texto na consulta",
+            "Usar parâmetros e validar os dados",
+            "Remover todos os espaços do texto"
+        ],
+        answer: 1,
+        explanation: "Correto. Os parâmetros mantêm a entrada como dado, em vez de a interpretar como parte da instrução SQL.",
+        labTitle: "Laboratório: formulário de pesquisa",
+        labDescription: "Num simulador local, o campo de pesquisa recebe texto inesperado. Qual alteração melhora a segurança do backend?",
+        labOptions: [
+            "Esconder o campo no ecrã",
+            "Confiar na validação feita apenas pelo iPhone",
+            "Usar consultas parametrizadas no servidor"
+        ],
+        labAnswer: 2,
+        labExplanation: "A validação no cliente melhora a experiência, mas pode ser contornada. A aplicação deve proteger a consulta também no servidor."
+    ),
+    Lesson(
+        id: 4,
+        title: "Análise de logs",
+        subtitle: "Investiga eventos suspeitos",
+        icon: "waveform.path.ecg",
+        concept: "Os logs registam acontecimentos como autenticações e falhas. Uma sequência de muitas falhas seguida de um acesso bem-sucedido pode justificar uma investigação.",
+        objective: "Identificar padrões anormais em registos de autenticação.",
+        challenge: "Qual evento merece maior investigação?",
+        options: [
+            "Um acesso habitual do utilizador",
+            "Vinte falhas de login e depois um sucesso na mesma conta",
+            "Uma saída normal da aplicação"
+        ],
+        answer: 1,
+        explanation: "Correto. A sequência pode indicar uma tentativa de adivinhar credenciais. É necessário verificar contexto, origem e outros eventos.",
+        labTitle: "Laboratório: painel de eventos",
+        labDescription: "Registos fictícios: 09:00 sucesso; 09:01 falha; 09:02 falha; 09:03 falha; 09:04 sucesso. Qual é a resposta inicial mais adequada?",
+        labOptions: [
+            "Ignorar porque houve um login bem-sucedido",
+            "Apagar os logs para evitar alarmes",
+            "Investigar a origem e rever a atividade da conta"
+        ],
+        labAnswer: 2,
+        labExplanation: "Correto. Preserva os registos, verifica a origem e procura atividade adicional. Um padrão suspeito exige investigação, não uma conclusão automática."
+    )
+]
 
-private enum TaskFilter: String, CaseIterable {
-    case all = "Todas"
-    case pending = "Pendentes"
-    case completed = "Concluídas"
+private enum Screen {
+    case home, lesson(Int), lab(Int), result(Int, Bool)
 }
 
 @main
 struct SwiftDemoApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CyberQuestView()
         }
     }
 }
 
-struct ContentView: View {
-    @AppStorage("taskManager.name") private var userName = "Fernando"
-    @State private var tasks: [TaskItem] = []
-    @State private var newTitle = ""
-    @State private var newPriority: Priority = .medium
-    @State private var selectedFilter: TaskFilter = .all
-    @State private var showAddTask = false
-    @State private var hasLoaded = false
+struct CyberQuestView: View {
+    @AppStorage("cq.completed") private var completedRaw = ""
+    @AppStorage("cq.xp") private var savedXP = 0
 
-    private var completedCount: Int {
-        tasks.filter(\.isCompleted).count
+    @State private var screen: Screen = .home
+    @State private var selected = -1
+    @State private var labSelected = -1
+    @State private var feedback = ""
+    @State private var labFeedback = ""
+
+    private var completed: Set<Int> {
+        Set(completedRaw.split(separator: ",").compactMap { Int($0) })
     }
 
-    private var pendingCount: Int {
-        tasks.filter { !$0.isCompleted }.count
+    private var xp: Int {
+        max(savedXP, completed.count * 100)
     }
 
-    private var progress: Double {
-        tasks.isEmpty ? 0 : Double(completedCount) / Double(tasks.count)
+    private func unlocked(_ id: Int) -> Bool {
+        id == 1 || completed.contains(id - 1)
     }
 
-    private var visibleTasks: [TaskItem] {
-        let filtered = tasks.filter { task in
-            switch selectedFilter {
-            case .all: return true
-            case .pending: return !task.isCompleted
-            case .completed: return task.isCompleted
-            }
-        }
-
-        return filtered.sorted {
-            if $0.isCompleted != $1.isCompleted {
-                return !$0.isCompleted
-            }
-            let order: [Priority: Int] = [
-                .high: 0, .medium: 1, .low: 2
-            ]
-            return order[$0.priority, default: 1] <
-                   order[$1.priority, default: 1]
-        }
+    private func markCompleted(_ id: Int) {
+        var values = completed
+        values.insert(id)
+        completedRaw = values.sorted().map(String.init).joined(separator: ",")
+        savedXP = max(savedXP, values.count * 100)
     }
 
     var body: some View {
         ZStack {
-            AppStyle.background.ignoresSafeArea()
+            CQ.bg.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 header
 
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 24) {
-                        welcomeSection
-                        progressCard
-                        filterSection
-                        taskSection
-                    }
-                    .padding(.horizontal, 22)
-                    .padding(.top, 22)
-                    .padding(.bottom, 32)
+                switch screen {
+                case .home:
+                    home
+                case .lesson(let id):
+                    lessonView(lessons[id - 1])
+                case .lab(let id):
+                    labView(lessons[id - 1])
+                case .result(let id, let success):
+                    resultView(lessons[id - 1], success: success)
                 }
-
-                addButton
             }
         }
-        .preferredColorScheme(.light)
-        .onAppear(perform: loadTasks)
-        .sheet(isPresented: $showAddTask) {
-            addTaskSheet
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-        }
+        .foregroundStyle(.white)
+        .preferredColorScheme(.dark)
     }
 
     private var header: some View {
-        HStack {
-            HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(AppStyle.blue)
-                        .frame(width: 42, height: 42)
+        HStack(spacing: 11) {
+            Image(systemName: "shield.lefthalf.filled")
+                .font(.system(size: 25, weight: .bold))
+                .foregroundStyle(CQ.green)
 
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 21, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("TaskFlow")
-                        .font(.system(size: 20, weight: .bold))
-
-                    Text("GESTÃO DE TAREFAS")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.5)
-                        .foregroundStyle(AppStyle.muted)
-                }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("CYBERQUEST")
+                    .font(.system(size: 17, weight: .black, design: .monospaced))
+                    .tracking(1.4)
+                Text("ACADEMIA DE CIBERSEGURANÇA")
+                    .font(.system(size: 9, weight: .bold))
+                    .tracking(1)
+                    .foregroundStyle(CQ.muted)
             }
 
             Spacer()
 
-            Image(systemName: "person.crop.circle.fill")
-                .font(.system(size: 35))
-                .foregroundStyle(AppStyle.blue.opacity(0.85))
+            HStack(spacing: 5) {
+                Image(systemName: "bolt.fill")
+                    .foregroundStyle(CQ.green)
+                Text("\(xp) XP")
+                    .fontWeight(.bold)
+            }
+            .font(.system(size: 12, design: .monospaced))
+            .padding(10)
+            .background(CQ.panel, in: Capsule())
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 14)
-        .background(.white)
+        .padding(.horizontal, 19)
+        .padding(.vertical, 15)
+        .background(CQ.bg)
         .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(Color.black.opacity(0.04))
-                .frame(height: 1)
+            Rectangle().fill(CQ.green.opacity(0.18)).frame(height: 1)
         }
     }
 
-    private var welcomeSection: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(Date.now.formatted(
-                .dateTime.weekday(.wide).day().month(.wide)
-            ).uppercased())
-            .font(.system(size: 10, weight: .bold))
-            .tracking(1.3)
-            .foregroundStyle(AppStyle.blue)
+    private var home: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 9) {
+                    Text("TREINO DE SEGURANÇA // 001")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .tracking(1.4)
+                        .foregroundStyle(CQ.green)
 
-            Text("Olá, \(userName) 👋")
-                .font(.system(size: 29, weight: .bold))
-                .foregroundStyle(Color.primary)
+                    Text("Aprende.\nPratica. Protege.")
+                        .font(.system(size: 34, weight: .black))
+                        .fixedSize(horizontal: false, vertical: true)
 
-            Text(pendingCount == 0
-                 ? "Tudo em dia. Aproveita o teu tempo!"
-                 : "Tens \(pendingCount) tarefa(s) por concluir.")
-                .font(.system(size: 14))
-                .foregroundStyle(AppStyle.muted)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var progressCard: some View {
-        VStack(alignment: .leading, spacing: 17) {
-            HStack {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("O teu progresso")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(.white)
-
-                    Text("\(completedCount) de \(tasks.count) concluídas")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.white.opacity(0.75))
+                    Text("Quatro missões práticas para desenvolver o teu pensamento de segurança.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(CQ.muted)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                .padding(.top, 23)
 
-                Spacer()
+                VStack(alignment: .leading, spacing: 13) {
+                    HStack {
+                        Text("PROGRESSO DO TREINO")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .tracking(1)
+                            .foregroundStyle(CQ.muted)
+                        Spacer()
+                        Text("\(completed.count)/4")
+                            .foregroundStyle(CQ.green)
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    }
 
-                Text("\(Int(progress * 100))%")
-                    .font(.system(size: 27, weight: .bold))
-                    .foregroundStyle(.white)
-            }
-
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(.white.opacity(0.22))
-
-                    Capsule()
-                        .fill(.white)
-                        .frame(width: geometry.size.width * progress)
-                }
-            }
-            .frame(height: 7)
-
-            HStack(spacing: 18) {
-                Label("\(pendingCount) pendentes", systemImage: "clock")
-                Label("\(completedCount) feitas", systemImage: "checkmark.circle")
-            }
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(.white.opacity(0.9))
-        }
-        .padding(20)
-        .background {
-            RoundedRectangle(cornerRadius: 22)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            AppStyle.blue,
-                            Color(red: 0.34, green: 0.43, blue: 0.96)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        }
-    }
-
-    private var filterSection: some View {
-        HStack(spacing: 8) {
-            ForEach(TaskFilter.allCases, id: \.self) { filter in
-                Button {
-                    selectedFilter = filter
-                } label: {
-                    Text(filter.rawValue)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(
-                            selectedFilter == filter
-                            ? .white : AppStyle.muted
-                        )
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 10)
-                        .background {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(.white.opacity(0.08))
                             Capsule()
-                                .fill(
-                                    selectedFilter == filter
-                                    ? AppStyle.blue : .white
-                                )
+                                .fill(CQ.green)
+                                .frame(width: geo.size.width * CGFloat(completed.count) / 4)
                         }
-                        .overlay {
-                            Capsule()
-                                .strokeBorder(
-                                    selectedFilter == filter
-                                    ? .clear : Color.black.opacity(0.05)
-                                )
-                        }
+                    }
+                    .frame(height: 7)
+
+                    HStack {
+                        Label("\(completed.count) concluídas", systemImage: "checkmark.circle.fill")
+                        Spacer()
+                        Text("MODO OFFLINE")
+                    }
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundStyle(CQ.muted)
                 }
-                .buttonStyle(.plain)
-            }
+                .padding(17)
+                .background(CQ.panel, in: RoundedRectangle(cornerRadius: 17))
 
-            Spacer(minLength: 0)
-        }
-    }
-
-    private var taskSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Text("As minhas tarefas")
-                    .font(.system(size: 18, weight: .bold))
-
-                Spacer()
-
-                Text("\(visibleTasks.count)")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(AppStyle.blue)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(AppStyle.blue.opacity(0.09))
-                    .clipShape(Capsule())
-            }
-
-            if visibleTasks.isEmpty {
-                emptyState
-            } else {
-                ForEach(visibleTasks) { task in
-                    taskRow(task)
-                }
-            }
-        }
-    }
-
-    private func taskRow(_ task: TaskItem) -> some View {
-        HStack(spacing: 12) {
-            Button {
-                toggleTask(task)
-            } label: {
-                Image(systemName: task.isCompleted
-                      ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 23))
-                    .foregroundStyle(
-                        task.isCompleted ? .green : AppStyle.muted.opacity(0.65)
-                    )
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(
-                task.isCompleted ? "Reabrir tarefa" : "Concluir tarefa"
-            )
-
-            VStack(alignment: .leading, spacing: 7) {
-                Text(task.title)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(
-                        task.isCompleted ? AppStyle.muted : Color.primary
-                    )
-                    .strikethrough(task.isCompleted)
-
-                HStack(spacing: 5) {
-                    Image(systemName: task.priority.symbol)
+                HStack {
+                    Text("TRILHO DE APRENDIZAGEM")
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .tracking(1)
+                    Spacer()
+                    Text("4 MISSÕES")
                         .font(.system(size: 9, weight: .bold))
-
-                    Text(task.priority.rawValue)
-                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(CQ.green)
                 }
-                .foregroundStyle(task.priority.color)
-            }
 
-            Spacer(minLength: 2)
+                ForEach(lessons) { item in
+                    lessonCard(item)
+                }
 
-            Button(role: .destructive) {
-                deleteTask(task)
-            } label: {
-                Image(systemName: "trash")
-                    .font(.system(size: 14))
-                    .foregroundStyle(AppStyle.muted.opacity(0.7))
-                    .padding(8)
+                if completed.count == lessons.count {
+                    VStack(spacing: 10) {
+                        Image(systemName: "trophy.fill")
+                            .font(.system(size: 34))
+                            .foregroundStyle(CQ.green)
+                        Text("MISSÃO CONCLUÍDA")
+                            .font(.system(size: 19, weight: .black, design: .monospaced))
+                        Text("Completaste as quatro aulas do CYBERQUEST.")
+                            .font(.system(size: 13))
+                            .foregroundStyle(CQ.muted)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(25)
+                    .background(CQ.panel, in: RoundedRectangle(cornerRadius: 20))
+                }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Eliminar \(task.title)")
-        }
-        .padding(15)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 17))
-        .overlay {
-            RoundedRectangle(cornerRadius: 17)
-                .strokeBorder(Color.black.opacity(0.045))
+            .padding(.horizontal, 19)
+            .padding(.bottom, 30)
         }
     }
 
-    private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: selectedFilter == .completed
-                  ? "checkmark.circle" : "tray")
-                .font(.system(size: 35))
-                .foregroundStyle(AppStyle.blue.opacity(0.65))
+    private func lessonCard(_ item: Lesson) -> some View {
+        let isDone = completed.contains(item.id)
+        let isUnlocked = unlocked(item.id)
 
-            Text(selectedFilter == .completed
-                 ? "Ainda não concluíste tarefas"
-                 : selectedFilter == .pending
-                 ? "Não tens tarefas pendentes"
-                 : "Começa por adicionar uma tarefa")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(AppStyle.muted)
-
-            Text("Organiza o teu dia, uma tarefa de cada vez.")
-                .font(.system(size: 12))
-                .foregroundStyle(AppStyle.muted.opacity(0.8))
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 28)
-        .padding(.horizontal, 15)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-    }
-
-    private var addButton: some View {
-        Button {
-            newTitle = ""
-            newPriority = .medium
-            showAddTask = true
+        return Button {
+            guard isUnlocked else { return }
+            selected = -1
+            feedback = ""
+            screen = .lesson(item.id)
         } label: {
-            HStack(spacing: 9) {
-                Image(systemName: "plus")
-                    .font(.system(size: 15, weight: .bold))
+            HStack(spacing: 13) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 13)
+                        .fill(isDone ? CQ.green.opacity(0.14) : CQ.bg)
+                        .frame(width: 48, height: 48)
+                    Image(systemName: isDone ? "checkmark" : item.icon)
+                        .font(.system(size: 19, weight: .semibold))
+                        .foregroundStyle(isDone ? CQ.green : (isUnlocked ? CQ.blue : CQ.muted))
+                }
 
-                Text("Adicionar tarefa")
-                    .font(.system(size: 15, weight: .bold))
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("NÍVEL \(String(format: "%02d", item.id))")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(CQ.green)
+                    Text(item.title)
+                        .font(.system(size: 15, weight: .bold))
+                    Text(item.subtitle)
+                        .font(.system(size: 11))
+                        .foregroundStyle(CQ.muted)
+                }
+
+                Spacer(minLength: 3)
+
+                Image(systemName: isDone ? "checkmark.circle.fill" : (isUnlocked ? "arrow.up.right" : "lock.fill"))
+                    .foregroundStyle(isDone ? CQ.green : CQ.muted)
             }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 17)
-            .background(AppStyle.blue)
-            .clipShape(RoundedRectangle(cornerRadius: 17))
+            .padding(14)
+            .background(CQ.panel, in: RoundedRectangle(cornerRadius: 17))
+            .overlay {
+                RoundedRectangle(cornerRadius: 17)
+                    .strokeBorder(isUnlocked ? CQ.green.opacity(0.13) : .white.opacity(0.04))
+            }
+            .opacity(isUnlocked ? 1 : 0.55)
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 22)
-        .padding(.top, 12)
-        .padding(.bottom, 10)
-        .background(.white)
+        .disabled(!isUnlocked)
     }
 
-    private var addTaskSheet: some View {
-        NavigationStack {
-            Form {
-                Section("Detalhes da tarefa") {
-                    TextField("Ex.: Estudar SwiftUI", text: $newTitle)
-                        .submitLabel(.done)
+    private func lessonView(_ item: Lesson) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                backButton
 
-                    Picker("Prioridade", selection: $newPriority) {
-                        ForEach(Priority.allCases, id: \.self) { priority in
-                            Text(priority.rawValue).tag(priority)
+                Text("NÍVEL \(String(format: "%02d", item.id)) / AULA")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .tracking(1.4)
+                    .foregroundStyle(CQ.green)
+
+                Text(item.title)
+                    .font(.system(size: 30, weight: .black))
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Label("CONCEITO-CHAVE", systemImage: "book.closed.fill")
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .foregroundStyle(CQ.green)
+
+                    Text(item.concept)
+                        .font(.system(size: 15))
+                        .lineSpacing(5)
+
+                    Divider().overlay(.white.opacity(0.08))
+
+                    Text("OBJETIVO")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .foregroundStyle(CQ.blue)
+
+                    Text(item.objective)
+                        .font(.system(size: 13))
+                        .foregroundStyle(CQ.muted)
+                }
+                .padding(18)
+                .background(CQ.panel, in: RoundedRectangle(cornerRadius: 18))
+
+                Text("VERIFICA O QUE APRENDESTE")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundStyle(CQ.muted)
+
+                Text(item.challenge)
+                    .font(.system(size: 16, weight: .semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                ForEach(item.options.indices, id: \.self) { index in
+                    optionButton(item.options[index], index: index, chosen: selected)
+                }
+
+                if !feedback.isEmpty {
+                    feedbackCard(feedback, success: selected == item.answer)
+                }
+
+                primaryButton(feedback.isEmpty ? "Verificar resposta" : "Continuar para o laboratório") {
+                    if feedback.isEmpty {
+                        guard selected >= 0 else {
+                            feedback = "Escolhe uma resposta para continuar."
+                            return
                         }
+                        feedback = item.explanation
+                    } else {
+                        labSelected = -1
+                        labFeedback = ""
+                        screen = .lab(item.id)
                     }
                 }
-
-                Section {
-                    Label(
-                        "A tarefa será guardada neste dispositivo.",
-                        systemImage: "lock.shield"
-                    )
-                    .font(.footnote)
-                    .foregroundStyle(AppStyle.muted)
-                }
+                .disabled(selected < 0 && feedback.isEmpty)
             }
-            .navigationTitle("Nova tarefa")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") {
-                        showAddTask = false
-                    }
-                }
-
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Guardar") {
-                        addTask()
-                    }
-                    .disabled(newTitle.trimmingCharacters(
-                        in: .whitespacesAndNewlines
-                    ).isEmpty)
-                    .fontWeight(.semibold)
-                }
-            }
-        }
-        .tint(AppStyle.blue)
-    }
-
-    private func addTask() {
-        let title = newTitle.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-
-        guard !title.isEmpty else { return }
-
-        tasks.insert(
-            TaskItem(title: title, priority: newPriority),
-            at: 0
-        )
-
-        saveTasks()
-        selectedFilter = .all
-        showAddTask = false
-    }
-
-    private func toggleTask(_ task: TaskItem) {
-        guard let index = tasks.firstIndex(where: { $0.id == task.id })
-        else { return }
-
-        tasks[index].isCompleted.toggle()
-        saveTasks()
-    }
-
-    private func deleteTask(_ task: TaskItem) {
-        tasks.removeAll { $0.id == task.id }
-        saveTasks()
-    }
-
-    private func loadTasks() {
-        guard !hasLoaded else { return }
-        hasLoaded = true
-
-        if let data = UserDefaults.standard.data(forKey: "taskManager.tasks"),
-           let savedTasks = try? JSONDecoder().decode(
-                [TaskItem].self, from: data
-           ) {
-            tasks = savedTasks
-        } else {
-            tasks = [
-                TaskItem(title: "Planear o meu dia", priority: .high),
-                TaskItem(title: "Estudar SwiftUI", priority: .medium),
-                TaskItem(title: "Organizar apontamentos", priority: .low)
-            ]
-            saveTasks()
+            .padding(20)
+            .padding(.bottom, 30)
         }
     }
 
-    private func saveTasks() {
-        guard let data = try? JSONEncoder().encode(tasks) else { return }
-        UserDefaults.standard.set(data, forKey: "taskManager.tasks")
+    private func labView(_ item: Lesson) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                backButton
+
+                HStack(spacing: 9) {
+                    Image(systemName: "terminal.fill")
+                        .foregroundStyle(CQ.green)
+                    Text("LABORATÓRIO // SIMULAÇÃO LOCAL")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .foregroundStyle(CQ.green)
+                }
+
+                Text(item.labTitle)
+                    .font(.system(size: 27, weight: .black))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text("AMBIENTE FICTÍCIO • SEM LIGAÇÃO A SISTEMAS REAIS")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .foregroundStyle(CQ.muted)
+
+                Text(item.labDescription)
+                    .font(.system(size: 15))
+                    .lineSpacing(4)
+                    .padding(17)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(CQ.panel, in: RoundedRectangle(cornerRadius: 16))
+
+                Text("ESCOLHE A TUA AÇÃO")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundStyle(CQ.muted)
+
+                ForEach(item.labOptions.indices, id: \.self) { index in
+                    optionButton(item.labOptions[index], index: index, chosen: labSelected)
+                }
+
+                if !labFeedback.isEmpty {
+                    feedbackCard(labFeedback, success: labSelected == item.labAnswer)
+                }
+
+                primaryButton(labFeedback.isEmpty ? "Executar decisão" : "Concluir missão") {
+                    if labFeedback.isEmpty {
+                        guard labSelected >= 0 else {
+                            labFeedback = "Seleciona uma ação antes de executar."
+                            return
+                        }
+                        labFeedback = item.labExplanation
+                    } else {
+                        markCompleted(item.id)
+                        screen = .result(item.id, labSelected == item.labAnswer)
+                    }
+                }
+                .disabled(labSelected < 0 && labFeedback.isEmpty)
+            }
+            .padding(20)
+            .padding(.bottom, 30)
+        }
+    }
+
+    private func resultView(_ item: Lesson, success: Bool) -> some View {
+        VStack(spacing: 22) {
+            Spacer()
+
+            Image(systemName: success ? "checkmark.seal.fill" : "flag.fill")
+                .font(.system(size: 65))
+                .foregroundStyle(CQ.green)
+
+            Text("MISSÃO REGISTADA")
+                .font(.system(size: 24, weight: .black, design: .monospaced))
+                .multilineTextAlignment(.center)
+
+            Text(success
+                 ? "Boa decisão. Concluíste o laboratório e desbloqueaste o próximo nível."
+                 : "Terminaste o laboratório. Revê a explicação e continua a aprender.")
+                .font(.system(size: 14))
+                .foregroundStyle(CQ.muted)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+
+            HStack(spacing: 9) {
+                Image(systemName: "bolt.fill")
+                    .foregroundStyle(CQ.green)
+                Text("+\(completed.contains(item.id) ? 100 : 0) XP TOTAL: \(xp)")
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity)
+            .background(CQ.panel, in: RoundedRectangle(cornerRadius: 14))
+
+            Spacer()
+
+            primaryButton(item.id == 4 ? "Voltar ao painel" : "Continuar aprendizagem") {
+                screen = .home
+            }
+        }
+        .padding(23)
+    }
+
+    private var backButton: some View {
+        Button {
+            screen = .home
+        } label: {
+            Label("Painel", systemImage: "arrow.left")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(CQ.muted)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func optionButton(_ title: String, index: Int, chosen: Int) -> some View {
+        Button {
+            if case .lesson = screen, feedback.isEmpty {
+                selected = index
+            } else if case .lab = screen, labFeedback.isEmpty {
+                labSelected = index
+            }
+        } label: {
+            HStack(spacing: 11) {
+                Image(systemName: chosen == index ? "largecircle.fill.circle" : "circle")
+                    .foregroundStyle(chosen == index ? CQ.green : CQ.muted)
+                Text(title)
+                    .font(.system(size: 13, weight: .medium))
+                    .multilineTextAlignment(.leading)
+                    .foregroundStyle(.white)
+                Spacer(minLength: 0)
+            }
+            .padding(14)
+            .background(chosen == index ? CQ.green.opacity(0.09) : CQ.panel,
+                        in: RoundedRectangle(cornerRadius: 13))
+            .overlay {
+                RoundedRectangle(cornerRadius: 13)
+                    .strokeBorder(chosen == index ? CQ.green.opacity(0.65) : .white.opacity(0.05))
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func feedbackCard(_ message: String, success: Bool) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: success ? "checkmark.circle.fill" : "info.circle.fill")
+                .foregroundStyle(success ? CQ.green : CQ.blue)
+            Text(message)
+                .font(.system(size: 12))
+                .lineSpacing(3)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(CQ.panel, in: RoundedRectangle(cornerRadius: 13))
+    }
+
+    private func primaryButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Spacer()
+                Text(title)
+                    .font(.system(size: 14, weight: .bold))
+                Image(systemName: "arrow.right")
+                Spacer()
+            }
+            .padding(16)
+            .foregroundStyle(CQ.bg)
+            .background(CQ.green, in: RoundedRectangle(cornerRadius: 14))
+        }
+        .buttonStyle(.plain)
     }
 }

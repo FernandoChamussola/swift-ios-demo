@@ -1,7 +1,7 @@
 
 workflows:
-  ios-simulator:
-    name: Native Swift iOS Simulator Build
+  ios-device:
+    name: Native Swift iOS Device Build
     max_build_duration: 30
     instance_type: mac_mini_m2
 
@@ -14,16 +14,16 @@ workflows:
         script: |
           xcodegen generate
 
-      - name: Build for iOS Simulator
+      - name: Build for iPhone
         script: |
           xcodebuild \
             -project SwiftDemo.xcodeproj \
             -scheme SwiftDemo \
-            -sdk iphonesimulator \
+            -sdk iphoneos \
             -configuration Debug \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             build
 
     artifacts:
-      - build/Build/Products/Debug-iphonesimulator/SwiftDemo.app
+      - build/Build/Products/Debug-iphoneos/SwiftDemo.app

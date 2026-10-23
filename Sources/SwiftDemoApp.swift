@@ -130,6 +130,57 @@ private let lessons: [Lesson] = [
     )
 ]
 
+
+private struct LockedModule: Identifiable {
+    let id: Int
+    let title: String
+    let subtitle: String
+    let icon: String
+    let lessons: [String]
+}
+
+private let lockedModules: [LockedModule] = [
+    LockedModule(
+        id: 2,
+        title: "Segurança de Redes",
+        subtitle: "Firewall, protocolos e defesa de infraestruturas",
+        icon: "network.badge.shield.half.filled",
+        lessons: [
+            "Fundamentos de redes e TCP/IP",
+            "Firewall e filtragem de tráfego",
+            "Análise de tráfego com Wireshark",
+            "VPN, DNS e segmentação",
+            "Defesa e monitorização de redes"
+        ]
+    ),
+    LockedModule(
+        id: 3,
+        title: "Segurança de Aplicações",
+        subtitle: "Vulnerabilidades web e proteção de APIs",
+        icon: "chevron.left.forwardslash.chevron.right",
+        lessons: [
+            "OWASP Top 10",
+            "Autenticação e gestão de sessões",
+            "SQL injection: prevenção",
+            "Segurança de APIs REST",
+            "Validação de entradas e autorização"
+        ]
+    ),
+    LockedModule(
+        id: 4,
+        title: "Resposta a Incidentes",
+        subtitle: "Investigar, conter e aprender com incidentes",
+        icon: "waveform.path.ecg",
+        lessons: [
+            "Triagem de alertas",
+            "Investigação de logs",
+            "Contenção de incidentes",
+            "Recolha e preservação de evidências",
+            "Relatório pós-incidente"
+        ]
+    )
+]
+
 private enum Screen {
     case home, lesson(Int), lab(Int), result(Int, Bool)
 }
@@ -304,6 +355,21 @@ struct CyberQuestView: View {
                     lessonCard(item)
                 }
 
+                HStack {
+                    Text("PRÓXIMOS MÓDULOS")
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .tracking(1)
+                    Spacer()
+                    Text("15 AULAS BLOQUEADAS")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(CQ.muted)
+                }
+                .padding(.top, 4)
+
+                ForEach(lockedModules) { module in
+                    lockedModuleCard(module)
+                }
+
                 if completed.count == lessons.count {
                     VStack(spacing: 10) {
                         Image(systemName: "trophy.fill")
@@ -372,6 +438,80 @@ struct CyberQuestView: View {
         }
         .buttonStyle(.plain)
         .disabled(!isUnlocked)
+    }
+
+    private func lockedModuleCard(_ module: LockedModule) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 13)
+                        .fill(CQ.bg)
+                        .frame(width: 46, height: 46)
+                    Image(systemName: module.icon)
+                        .font(.system(size: 19, weight: .semibold))
+                        .foregroundStyle(CQ.muted)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("MÓDULO \(String(format: "%02d", module.id))")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(CQ.muted)
+                    Text(module.title)
+                        .font(.system(size: 15, weight: .bold))
+                    Text(module.subtitle)
+                        .font(.system(size: 11))
+                        .foregroundStyle(CQ.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 4)
+
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(CQ.muted)
+            }
+
+            HStack {
+                Text("5 AULAS")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                Spacer()
+                Label("EM BREVE", systemImage: "lock.fill")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+            }
+            .foregroundStyle(CQ.muted)
+
+            VStack(spacing: 9) {
+                ForEach(Array(module.lessons.enumerated()), id: \.offset) { index, lessonTitle in
+                    HStack(spacing: 10) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(CQ.muted.opacity(0.8))
+
+                        Text(String(format: "%02d", index + 1))
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .foregroundStyle(CQ.muted.opacity(0.8))
+                            .frame(width: 19, alignment: .leading)
+
+                        Text(lessonTitle)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(CQ.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Spacer(minLength: 2)
+                    }
+                    .padding(.vertical, 3)
+                }
+            }
+            .padding(12)
+            .background(CQ.bg.opacity(0.75), in: RoundedRectangle(cornerRadius: 12))
+        }
+        .padding(15)
+        .background(CQ.panel, in: RoundedRectangle(cornerRadius: 18))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18)
+                .strokeBorder(.white.opacity(0.05))
+        }
+        .opacity(0.82)
     }
 
     private func lessonView(_ item: Lesson) -> some View {

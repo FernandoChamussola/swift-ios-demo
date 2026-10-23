@@ -80,53 +80,53 @@ private let lessons: [Lesson] = [
     ),
     Lesson(
         id: 3,
-        title: "Segurança Web",
-        subtitle: "Compreende entradas inseguras",
-        icon: "chevron.left.forwardslash.chevron.right",
-        concept: "Uma aplicação não deve confiar automaticamente nos dados recebidos. Consultas SQL parametrizadas separam os dados do código e ajudam a prevenir SQL injection.",
-        objective: "Distinguir a construção insegura de consultas de uma abordagem parametrizada.",
-        challenge: "Qual é a melhor forma de executar uma consulta SQL com um nome introduzido pelo utilizador?",
+        title: "Varredura de redes",
+        subtitle: "Descobre hosts e serviços com Nmap",
+        icon: "network",
+        concept: "O Nmap ajuda a identificar hosts ativos, portas abertas e serviços expostos. A opção -sV tenta identificar as versões dos serviços. A varredura deve ser feita apenas em redes próprias ou com autorização.",
+        objective: "Executar uma varredura simulada e interpretar as portas e serviços encontrados.",
+        challenge: "Qual comando pede ao Nmap para identificar as versões dos serviços no host de laboratório?",
         options: [
-            "Concatenar diretamente o texto na consulta",
-            "Usar parâmetros e validar os dados",
-            "Remover todos os espaços do texto"
+            "nmap --delete 192.168.56.10",
+            "nmap -sV 192.168.56.10",
+            "open-services --all"
         ],
         answer: 1,
-        explanation: "Correto. Os parâmetros mantêm a entrada como dado, em vez de a interpretar como parte da instrução SQL.",
-        labTitle: "Laboratório: formulário de pesquisa",
-        labDescription: "Num simulador local, o campo de pesquisa recebe texto inesperado. Qual alteração melhora a segurança do backend?",
+        explanation: "Correto. A opção -sV pede a deteção de versões dos serviços nas portas encontradas.",
+        labTitle: "Laboratório: reconhecimento com Nmap",
+        labDescription: "Missão: analisa o host fictício 192.168.56.10 e identifica as portas abertas e os serviços que estão a correr.",
         labOptions: [
-            "Esconder o campo no ecrã",
-            "Confiar na validação feita apenas pelo iPhone",
-            "Usar consultas parametrizadas no servidor"
+            "Desligar o host de laboratório",
+            "Executar uma varredura de serviços com Nmap",
+            "Apagar os registos do sistema"
         ],
-        labAnswer: 2,
-        labExplanation: "A validação no cliente melhora a experiência, mas pode ser contornada. A aplicação deve proteger a consulta também no servidor."
+        labAnswer: 1,
+        labExplanation: "No laboratório simulado, o comando Nmap com -sV mostra as portas abertas e os serviços detetados. Nenhum sistema real é contactado."
     ),
     Lesson(
         id: 4,
-        title: "Análise de logs",
-        subtitle: "Investiga eventos suspeitos",
-        icon: "waveform.path.ecg",
-        concept: "Os logs registam acontecimentos como autenticações e falhas. Uma sequência de muitas falhas seguida de um acesso bem-sucedido pode justificar uma investigação.",
-        objective: "Identificar padrões anormais em registos de autenticação.",
-        challenge: "Qual evento merece maior investigação?",
+        title: "Metasploit Framework",
+        subtitle: "Explora módulos num ambiente controlado",
+        icon: "terminal.fill",
+        concept: "O Metasploit Framework organiza ferramentas em módulos. Neste laboratório usamos apenas um módulo auxiliar de varredura de portas, sem explorar vulnerabilidades nem atacar sistemas.",
+        objective: "Aprender a abrir a consola, selecionar um módulo de scanner, definir o alvo fictício e interpretar o resultado.",
+        challenge: "Qual é a melhor prática antes de executar um módulo de segurança?",
         options: [
-            "Um acesso habitual do utilizador",
-            "Vinte falhas de login e depois um sucesso na mesma conta",
-            "Uma saída normal da aplicação"
+            "Executar qualquer módulo contra endereços aleatórios",
+            "Definir um alvo autorizado e compreender o módulo escolhido",
+            "Desativar todas as proteções da rede"
         ],
         answer: 1,
-        explanation: "Correto. A sequência pode indicar uma tentativa de adivinhar credenciais. É necessário verificar contexto, origem e outros eventos.",
-        labTitle: "Laboratório: painel de eventos",
-        labDescription: "Registos fictícios: 09:00 sucesso; 09:01 falha; 09:02 falha; 09:03 falha; 09:04 sucesso. Qual é a resposta inicial mais adequada?",
+        explanation: "Correto. Trabalha apenas em sistemas próprios ou autorizados e confirma o propósito do módulo antes de o executar.",
+        labTitle: "Laboratório: consola Metasploit",
+        labDescription: "Missão: na consola simulada, inicia o Metasploit, seleciona o scanner TCP, define o host fictício 192.168.56.10 e executa a análise.",
         labOptions: [
-            "Ignorar porque houve um login bem-sucedido",
-            "Apagar os logs para evitar alarmes",
-            "Investigar a origem e rever a atividade da conta"
+            "Executar um payload desconhecido",
+            "Usar um módulo auxiliar de varredura de portas",
+            "Tentar palavras-passe contra um servidor real"
         ],
-        labAnswer: 2,
-        labExplanation: "Correto. Preserva os registos, verifica a origem e procura atividade adicional. Um padrão suspeito exige investigação, não uma conclusão automática."
+        labAnswer: 1,
+        labExplanation: "O módulo auxiliar de varredura apresenta portas de exemplo no alvo fictício. A aplicação simula os resultados e não inicia uma ligação real."
     )
 ]
 
@@ -152,6 +152,11 @@ struct CyberQuestView: View {
     @State private var labSelected = -1
     @State private var feedback = ""
     @State private var labFeedback = ""
+    @State private var terminalInput = ""
+    @State private var terminalLines: [String] = []
+    @State private var terminalHintShown = false
+    @State private var terminalMissionComplete = false
+    @State private var metasploitStep = 0
 
     private var completed: Set<Int> {
         Set(completedRaw.split(separator: ",").compactMap { Int($0) })
@@ -162,7 +167,8 @@ struct CyberQuestView: View {
     }
 
     private func unlocked(_ id: Int) -> Bool {
-        id == 1 || completed.contains(id - 1)
+        // Todas as aulas ficam acessíveis para a demonstração.
+        true
     }
 
     private func markCompleted(_ id: Int) {
@@ -244,7 +250,7 @@ struct CyberQuestView: View {
                         .font(.system(size: 34, weight: .black))
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Text("Quatro missões práticas para desenvolver o teu pensamento de segurança.")
+                    Text("Aprende os fundamentos e pratica reconhecimento de rede em terminais simulados.")
                         .font(.system(size: 14))
                         .foregroundStyle(CQ.muted)
                         .fixedSize(horizontal: false, vertical: true)
@@ -276,7 +282,7 @@ struct CyberQuestView: View {
                     HStack {
                         Label("\(completed.count) concluídas", systemImage: "checkmark.circle.fill")
                         Spacer()
-                        Text("MODO OFFLINE")
+                        Text("MODO OFFLINE • LABS SIMULADOS")
                     }
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .foregroundStyle(CQ.muted)
@@ -429,6 +435,13 @@ struct CyberQuestView: View {
                     } else {
                         labSelected = -1
                         labFeedback = ""
+                        terminalInput = ""
+                        terminalLines = item.id == 3
+                            ? ["CYBERQUEST NMAP LAB v1.0", "Alvo autorizado de demonstração: 192.168.56.10", "Escreve 'help' para ver comandos disponíveis."]
+                            : ["CYBERQUEST METASPLOIT LAB v1.0", "Ambiente simulado — sem ligações a sistemas reais.", "Escreve 'help' para ver o fluxo de comandos."]
+                        terminalHintShown = false
+                        terminalMissionComplete = false
+                        metasploitStep = 0
                         screen = .lab(item.id)
                     }
                 }
@@ -467,34 +480,227 @@ struct CyberQuestView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(CQ.panel, in: RoundedRectangle(cornerRadius: 16))
 
-                Text("ESCOLHE A TUA AÇÃO")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundStyle(CQ.muted)
-
-                ForEach(item.labOptions.indices, id: \.self) { index in
-                    optionButton(item.labOptions[index], index: index, chosen: labSelected)
-                }
-
-                if !labFeedback.isEmpty {
-                    feedbackCard(labFeedback, success: labSelected == item.labAnswer)
-                }
-
-                primaryButton(labFeedback.isEmpty ? "Executar decisão" : "Concluir missão") {
-                    if labFeedback.isEmpty {
-                        guard labSelected >= 0 else {
-                            labFeedback = "Seleciona uma ação antes de executar."
-                            return
-                        }
-                        labFeedback = item.labExplanation
-                    } else {
+                if item.id >= 3 {
+                    terminalPanel(item)
+                    primaryButton("Concluir missão") {
                         markCompleted(item.id)
-                        screen = .result(item.id, labSelected == item.labAnswer)
+                        screen = .result(item.id, terminalMissionComplete)
                     }
+                    .disabled(!terminalMissionComplete)
+                } else {
+                    Text("ESCOLHE A TUA AÇÃO")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .foregroundStyle(CQ.muted)
+
+                    ForEach(item.labOptions.indices, id: \.self) { index in
+                        optionButton(item.labOptions[index], index: index, chosen: labSelected)
+                    }
+
+                    if !labFeedback.isEmpty {
+                        feedbackCard(labFeedback, success: labSelected == item.labAnswer)
+                    }
+
+                    primaryButton(labFeedback.isEmpty ? "Executar decisão" : "Concluir missão") {
+                        if labFeedback.isEmpty {
+                            guard labSelected >= 0 else {
+                                labFeedback = "Seleciona uma ação antes de executar."
+                                return
+                            }
+                            labFeedback = item.labExplanation
+                        } else {
+                            markCompleted(item.id)
+                            screen = .result(item.id, labSelected == item.labAnswer)
+                        }
+                    }
+                    .disabled(labSelected < 0 && labFeedback.isEmpty)
                 }
-                .disabled(labSelected < 0 && labFeedback.isEmpty)
             }
             .padding(20)
             .padding(.bottom, 30)
+        }
+    }
+
+    private func terminalPanel(_ item: Lesson) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Circle().fill(Color.red.opacity(0.9)).frame(width: 8, height: 8)
+                Circle().fill(Color.yellow.opacity(0.9)).frame(width: 8, height: 8)
+                Circle().fill(CQ.green).frame(width: 8, height: 8)
+                Spacer()
+                Text(item.id == 3 ? "NMAP TERMINAL" : "MSFCONSOLE")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundStyle(CQ.green)
+            }
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 7) {
+                    ForEach(terminalLines.indices, id: \.self) { index in
+                        Text(terminalLines[index])
+                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .foregroundStyle(terminalLines[index].hasPrefix("$") ? CQ.blue : (terminalLines[index].hasPrefix("[+]") ? CQ.green : .white))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .textSelection(.enabled)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(minHeight: 150, maxHeight: 240)
+            .padding(12)
+            .background(Color.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 10))
+
+            HStack(spacing: 8) {
+                Text("$")
+                    .font(.system(.body, design: .monospaced).bold())
+                    .foregroundStyle(CQ.green)
+                TextField("Escreve um comando...", text: $terminalInput)
+                    .font(.system(size: 12, design: .monospaced))
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .submitLabel(.go)
+                    .onSubmit { runTerminalCommand(for: item) }
+                Button {
+                    runTerminalCommand(for: item)
+                } label: {
+                    Image(systemName: "arrow.turn.down.left")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(CQ.bg)
+                        .padding(10)
+                        .background(CQ.green, in: RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(10)
+            .background(CQ.panel, in: RoundedRectangle(cornerRadius: 10))
+
+            HStack(spacing: 10) {
+                Button {
+                    terminalHintShown.toggle()
+                } label: {
+                    Label(terminalHintShown ? "Ocultar dica" : "Dica", systemImage: "lightbulb")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(CQ.blue)
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    terminalLines = []
+                } label: {
+                    Label("Limpar", systemImage: "trash")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(CQ.muted)
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                if terminalMissionComplete {
+                    Label("Objetivo concluído", systemImage: "checkmark.circle.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(CQ.green)
+                }
+            }
+
+            if terminalHintShown {
+                Text(item.id == 3
+                     ? "Dica: usa 'nmap -sV 192.168.56.10'. A opção -sV tenta identificar as versões dos serviços."
+                     : "Dica: executa por ordem: msfconsole → search portscan → use auxiliary/scanner/portscan/tcp → set RHOSTS 192.168.56.10 → run.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(CQ.blue)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(CQ.blue.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+            }
+        }
+        .padding(13)
+        .background(CQ.panel, in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func runTerminalCommand(for item: Lesson) {
+        let command = terminalInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !command.isEmpty else { return }
+        terminalLines.append("$ " + command)
+        terminalInput = ""
+        let normalized = command.lowercased().replacingOccurrences(of: "  ", with: " ")
+
+        if normalized == "clear" {
+            terminalLines = []
+            return
+        }
+
+        if normalized == "help" {
+            if item.id == 3 {
+                terminalLines.append("Comando disponível: nmap -sV 192.168.56.10")
+                terminalLines.append("Objetivo: identificar portas abertas e serviços.")
+            } else {
+                terminalLines.append("Fluxo: msfconsole → search portscan → use auxiliary/scanner/portscan/tcp")
+                terminalLines.append("Depois: set RHOSTS 192.168.56.10 → run")
+            }
+            return
+        }
+
+        if item.id == 3 {
+            if normalized.contains("nmap") && normalized.contains("-sv") && normalized.contains("192.168.56.10") {
+                terminalLines.append("Starting Nmap 7.95 (simulação)")
+                terminalLines.append("Nmap scan report for 192.168.56.10")
+                terminalLines.append("Host is up (latência simulada).")
+                terminalLines.append("PORT     STATE SERVICE VERSION")
+                terminalLines.append("22/tcp   open  ssh     OpenSSH 9.2")
+                terminalLines.append("80/tcp   open  http    nginx 1.24")
+                terminalLines.append("3306/tcp open  mysql   MySQL 8.0")
+                terminalLines.append("[+] Varredura simulada concluída. Identificaste 3 serviços.")
+                terminalMissionComplete = true
+            } else {
+                terminalLines.append("Erro: comando não reconhecido ou parâmetros incompletos.")
+                terminalLines.append("Dica: usa 'nmap -sV 192.168.56.10' ou escreve 'help'.")
+            }
+            return
+        }
+
+        switch metasploitStep {
+        case 0:
+            if normalized == "msfconsole" {
+                terminalLines.append("Metasploit Framework Console [SIMULADA]")
+                terminalLines.append("[+] Consola iniciada.")
+                metasploitStep = 1
+            } else {
+                terminalLines.append("Erro: inicia primeiro a consola com 'msfconsole'.")
+            }
+        case 1:
+            if normalized == "search portscan" || normalized == "search type:auxiliary name:scanner" {
+                terminalLines.append("Matching Modules")
+                terminalLines.append("auxiliary/scanner/portscan/tcp")
+                terminalLines.append("[+] Scanner auxiliar encontrado.")
+                metasploitStep = 2
+            } else {
+                terminalLines.append("Erro: procura o módulo de varredura com 'search portscan'.")
+            }
+        case 2:
+            if normalized == "use auxiliary/scanner/portscan/tcp" {
+                terminalLines.append("[+] Módulo selecionado: auxiliary/scanner/portscan/tcp")
+                terminalLines.append("Configura RHOSTS para o host fictício.")
+                metasploitStep = 3
+            } else {
+                terminalLines.append("Erro: seleciona o módulo scanner indicado na missão.")
+            }
+        case 3:
+            if normalized == "set rhosts 192.168.56.10" {
+                terminalLines.append("RHOSTS => 192.168.56.10")
+                metasploitStep = 4
+            } else {
+                terminalLines.append("Erro: define RHOSTS como 192.168.56.10.")
+            }
+        default:
+            if normalized == "run" {
+                terminalLines.append("[*] A executar scanner TCP (simulação)...")
+                terminalLines.append("192.168.56.10:22 - TCP OPEN")
+                terminalLines.append("192.168.56.10:80 - TCP OPEN")
+                terminalLines.append("192.168.56.10:3306 - TCP OPEN")
+                terminalLines.append("[+] Análise concluída: 3 portas abertas no alvo fictício.")
+                terminalMissionComplete = true
+                metasploitStep = 5
+            } else {
+                terminalLines.append("Erro: módulo configurado. Escreve 'run' para executar a simulação.")
+            }
         }
     }
 
@@ -511,7 +717,7 @@ struct CyberQuestView: View {
                 .multilineTextAlignment(.center)
 
             Text(success
-                 ? "Boa decisão. Concluíste o laboratório e desbloqueaste o próximo nível."
+                 ? "Boa decisão. Concluíste o laboratório. Todas as aulas continuam disponíveis para explorares."
                  : "Terminaste o laboratório. Revê a explicação e continua a aprender.")
                 .font(.system(size: 14))
                 .foregroundStyle(CQ.muted)
